@@ -1,23 +1,48 @@
 from faker import Faker
+from datetime import datetime, timedelta
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
+import random
 
-from models import Room,Customer,Booking
+from models import Booking, Customer, Room
 
 fake = Faker()
+random.seed(42)  # Set a seed for consistent random data
 
-engine = create_engine('sqlite:///test.db')
-session = sessionmaker(bind=engine)
-session = session()
+engine = create_engine('sqlite:///roombooking.db')
+Session = sessionmaker(bind=engine)
+session = Session()
 
-def seed_rooms():
+def seed_bookings():
+    rooms = session.query(Room).all()
+    customers = session.query(Customer).all()
+    bookings = []  # Empty list to hold added bookings
+
+    if not rooms:
+        print("No rooms found in the database.")
+        return bookings
+
     for _ in range(30):
-        room = Room(
-            room_number = fake.random_number(10),
-            room_type = fake.word(),
-            room_capacity = fake.random_int(min=1, max=2),
-            room_price=fake.random_int(min=500,max=2500)
-        )
-session.add(Room)
+        room = random.choice(rooms)
+        customer = random.choice(customers)
+        check_in_date = fake.date_between(start_date='today', end_date='+30d')
+        check_out_date = check_in_date + timedelta(days=fake.random_int(min=1, max=7))
 
-session.commit()
+        booking = Booking(
+            room_id=room.id,
+            customer_id=customer.id,
+            check_in_date=check_in_date,
+            check_out_date=check_out_date
+        )
+        session.add(booking)
+        bookings.append(booking)  # Append the booking to the list
+
+    session.commit()
+
+    return bookings  # Return the list of added bookings
+
+if __name__ == '__main__':
+    added_bookings = seed_bookings()
+    print("Added Bookings:")
+    for booking in added_bookings:
+        print(booking)
