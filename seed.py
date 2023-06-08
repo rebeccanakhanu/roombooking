@@ -1,3 +1,4 @@
+
 from faker import Faker
 from datetime import datetime, timedelta
 from sqlalchemy import create_engine
@@ -13,6 +14,8 @@ engine = create_engine('sqlite:///roombooking.db')
 Session = sessionmaker(bind=engine)
 session = Session()
 
+
+
 def seed_bookings():
     rooms = session.query(Room).all()
     customers = session.query(Customer).all()
@@ -20,7 +23,7 @@ def seed_bookings():
 
     if not rooms:
         print("No rooms found in the database.")
-        return bookings
+        return bookings  # Return empty list
 
     for _ in range(30):
         room = random.choice(rooms)
@@ -28,7 +31,7 @@ def seed_bookings():
         check_in_date = fake.date_between(start_date='today', end_date='+30d')
         check_out_date = check_in_date + timedelta(days=fake.random_int(min=1, max=7))
 
-        booking = Booking(
+        booking = booking(
             room_id=room.id,
             customer_id=customer.id,
             check_in_date=check_in_date,
@@ -40,9 +43,3 @@ def seed_bookings():
     session.commit()
 
     return bookings  # Return the list of added bookings
-
-if __name__ == '__main__':
-    added_bookings = seed_bookings()
-    print("Added Bookings:")
-    for booking in added_bookings:
-        print(booking)
