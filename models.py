@@ -1,9 +1,11 @@
-
 from sqlalchemy import create_engine, Column,Integer,Date,String,ForeignKey,Table
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import relationship,sessionmaker
 from sqlalchemy .ext.declarative import declarative_base
 
+
 engine = create_engine('sqlite:///roombooking.db',echo=True)
+Session = sessionmaker(bind=engine)
+session = Session()
 
 Base = declarative_base()
 
@@ -29,8 +31,25 @@ class Room(Base):
     customer = relationship("Customer", uselist=False, back_populates="room")
     
     def __repr__(self):
-        return f'Room'
+        return f'<Room id={self.id}, room_number={self.room_number}>'
+
+    def is_available(self, check_in_date, check_out_date):
+        bookings = self.bookings
+        for booking in bookings:
+            if (
+                check_in_date < booking.check_out_date
+                and check_out_date > booking.check_in_date
+            ):
+                return False
+        return True
     
+    def get_available_rooms(self, check_in_date, check_out_date):
+        available_rooms = []
+        for room in self.query.all():
+            if room.is_available(check_in_date, check_out_date):
+                available_rooms.append(room)
+        return available_rooms
+
     
 class Customer(Base):
     __tablename__ = 'customers'
@@ -44,9 +63,22 @@ class Customer(Base):
     bookings = relationship("Booking", back_populates="customer")
 
     def __repr__(self):
-        return f'Customer'
-    
-    
+        return f'<Customer id={self.id}, name={self.book_name}>'
+
+    def make_booking(self, room, check_in_date, check_out_date):
+        if room.is_available(check_in_date, check_out_date):
+            booking = Booking(
+                room_id=room.id,
+                customer_id=self.id,
+                check_in_date=check_in_date,
+                check_out_date=check_out_date
+            )
+            session.add(booking)
+            session.commit()
+            return booking
+        else:
+            return None
+
 class Booking(Base):
    __tablename__ = 'bookings'
 
@@ -56,8 +88,12 @@ class Booking(Base):
    check_out_date = Column(Date)
     
    customer = relationship("Customer", back_populates="bookings")
-    
-       
+   def __repr__(self):
+        return f'<Booking id={self.id}, customer_id={self.customer_id}>'
+
+def is_current(self):
+        today = Date.today()
+        return self.check_in_date <= today <= self.check_out_date
     
 
 
