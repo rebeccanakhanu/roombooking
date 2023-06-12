@@ -46,6 +46,6 @@ The project uses Pipenv to manage its environment and dependencies. The Pipfile 
 
 This project was developed as part of Phase 3 of the course and demonstrates proficiency in various concepts covered throughout the phase, including Python fundamentals, SQL, object-oriented programming, ORM, and CLI design.
 
-The project is public and was worked by Rebecca Wakhungu.
+The project is private and was worked by Rebecca Wakhungu.
 
 
